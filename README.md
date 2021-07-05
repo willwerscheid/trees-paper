@@ -2,4 +2,4 @@
 
 A [workflowr][] project.
 
-[workflowr]: https://github.com/jdblischak/workflowr
+[workflowr]: https://github.com/willwerscheid/trees-paper
