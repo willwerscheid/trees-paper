@@ -1,6 +1,5 @@
-library(tidyverse)
+cat("Obtaining SVDs for four-population trees...\n\n")
 
-source("./code/sim_fns.R")
 
 sim_param <- list(
   list(
@@ -49,4 +48,4 @@ ggplot(tib, aes(x = Idx, y = Loading, col = Pop)) +
   theme(axis.ticks.x = element_blank(), axis.text.x = element_blank()) +
   labs(x = "")
 
-ggsave("./figs/tree_svds.png", height = 6, width = 6)
+ggsave("../../figs/tree_svds.png", height = 6, width = 6)

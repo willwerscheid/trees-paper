@@ -1,4 +1,4 @@
-library(tidyverse)
+cat("Creating tree diagrams...\n\n")
 
 
 # 4 population tree, no admixture
@@ -25,7 +25,7 @@ plt <- ggplot(tib, aes(x = x, xend = xend, y = y, yend = yend, label = v_label))
   theme_void() +
   coord_fixed()
 
-ggsave("./figs/tree_4pop.png", height = 6, width = 5)
+ggsave("../../figs/tree_4pop.png", height = 6, width = 5)
 
 
 # 4 population tree, with admixture
@@ -59,7 +59,7 @@ plt <- ggplot(tib, aes(x = x, xend = xend, y = y, yend = yend, label = v_label))
   theme_void() +
   coord_fixed()
 
-ggsave("./figs/tree_4pop_admix.png", height = 6, width = 6)
+ggsave("../../figs/tree_4pop_admix.png", height = 6, width = 6)
 
 
 # 6 population tree, with admixture
@@ -95,7 +95,7 @@ plt <- ggplot(tib, aes(x = x, xend = xend, y = y, yend = yend, label = v_label))
   coord_fixed()
 plot(plt)
 
-ggsave("./figs/tree_6pop_admix.png", height = 6, width = 6)
+ggsave("../../figs/tree_6pop_admix.png", height = 6, width = 6)
 
 
 # 4 population star
@@ -124,7 +124,7 @@ plt <- ggplot(tib, aes(x = x, xend = xend, y = y, yend = yend, label = v_label))
 
 plot(plt)
 
-ggsave("./figs/star_4pop.png", height = 6, width = 5)
+ggsave("../../figs/star_4pop.png", height = 6, width = 5)
 
 
 # Figure illustrating the proof of the existence of the divergence factorization
@@ -150,7 +150,7 @@ p1 <- ggplot(tib1, aes(x = x, xend = xend, y = y, yend = yend, label = v_label))
   coord_fixed() +
   ggtitle("")
 
-ggsave("./figs/div_proof_Tk.png", height = 6, width = 6)
+ggsave("../../figs/div_proof_Tk.png", height = 6, width = 6)
 
 tib2 <- tib1[1:4, ]
 tib2$v_label <- c("", "v[anc]", "", "")
@@ -165,7 +165,7 @@ p2 <- ggplot(tib2, aes(x = x, xend = xend, y = y, yend = yend, label = v_label))
   theme_void() +
   coord_fixed()
 
-ggsave("./figs/div_proof_Tk-1.png", height = 6, width = 6)
+ggsave("../../figs/div_proof_Tk-1.png", height = 6, width = 6)
 
 tib3 <- tib2
 tib3$e_label <- c("", "", 'gamma[AB] + delta[AB]^"+"', "")
@@ -180,4 +180,4 @@ p3 <- ggplot(tib3, aes(x = x, xend = xend, y = y, yend = yend, label = v_label))
   theme_void() +
   coord_fixed()
 
-ggsave("./figs/div_proof_tildeTk-1.png", height = 6, width = 6)
+ggsave("../../figs/div_proof_tildeTk-1.png", height = 6, width = 6)

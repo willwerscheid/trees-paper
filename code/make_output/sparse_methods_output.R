@@ -1,10 +1,9 @@
-library(tidyverse)
-library(flashier)
-library(PMA)
-library(ssvd)
-library(gtools)
-
-source("./code/sim_fns.R")
+if (exists("test") && test) {
+  ntrials <- 2
+} else {
+  ntrials <- 20
+}
+cat("Generating output for sparse methods comparisons:", ntrials, "trials...\n\n")
 
 
 est_loadings <- function(sim_data,
@@ -26,7 +25,9 @@ do_fits <- function(sim_data, K, fns) {
   }
 
   if ("varimax" %in% fns) {
-    varimax_loadings <- loadings(varimax(svd_res$u))
+    varimax_loadings <- loadings(
+      varimax(svd_res$u %*% diag(sqrt(svd_res$d[1:K])), normalize = FALSE)
+    )
     class(varimax_loadings) <- "matrix"
     res <- c(res, list(varimax = varimax_loadings))
   }
@@ -34,12 +35,12 @@ do_fits <- function(sim_data, K, fns) {
   if ("ssvd" %in% fns) {
     ssvd_res <- ssvd.iter.thresh(sim_data$Y, method = "theory", gamma.v = 0,
                                  u.old = svd_res$u, v.old = svd_res$v, r = K)
-    res <- c(res, list(ssvd = ssvd_res$u %*% diag(ssvd_res$d)))
+    res <- c(res, list(ssvd = ssvd_res$u))
   }
 
   if ("pmd" %in% fns) {
     pmd_res <- PMD(sim_data$Y, K = K, trace = FALSE)
-    res <- c(res, list(pmd = pmd_res$u %*% diag(pmd_res$d)))
+    res <- c(res, list(pmd = pmd_res$u))
   }
 
   if ("pmd_cv" %in% fns) {
@@ -142,7 +143,7 @@ crossprod_experiment <- function(ntrials,
                                          "pmd", "pmd_cv", "ebmf_pn", "ebmf_pl")) {
   tib <- tibble()
   for (i in 1:ntrials) {
-    cat(i, " ")
+    cat("  Trial", i, "\n")
     sim_param$seed <- i
     sim_data <- do.call(sim_fn, sim_param)
     res <- est_loadings(sim_data, K = K, fns)
@@ -150,6 +151,7 @@ crossprod_experiment <- function(ntrials,
     tib <- tib %>%
       bind_rows(crossprods)
   }
+  cat("\n")
 
   tib <- tib %>%
     mutate(Trial = row_number()) %>%
@@ -181,45 +183,6 @@ make_loadings_tib <- function(sim_data, res) {
   return(tib)
 }
 
-plot_loadings <- function(tib) {
-  plot(
-    ggplot(tib, aes(x = Idx, y = Loading, col = Pop)) +
-      geom_point() +
-      geom_hline(yintercept = 0, linetype = "dashed") +
-      facet_grid(rows = vars(Method, Crossprod), cols = vars(Factor), scales = "free_y") +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            panel.spacing = unit(1, "lines"))
-  )
-}
-
-plot_crossprod_res <- function(cp_res) {
-  plot(
-    ggplot(cp_res, aes(x = Method, y = Crossprod)) +
-      geom_boxplot() +
-      theme(axis.text = element_text(size = 12),
-            axis.title = element_text(size = 18))
-  )
-}
-
-plot_crossprod_diff <- function(cp_res) {
-  cp_res <- cp_res %>%
-    group_by(Trial) %>%
-    mutate(Diff = Crossprod - sum(Crossprod * (Method == "svd")))
-  plot(
-    ggplot(cp_res %>% filter(Method != "svd"), aes(x = Method, y = Diff)) +
-      geom_boxplot() +
-      theme(axis.text = element_text(size = 12),
-            axis.title = element_text(size = 18)) +
-      geom_hline(yintercept = 0, linetype = "dashed") +
-      labs(y = "vs. SVD")
-  )
-}
-
 
 # Balanced tree simulation:
 
@@ -232,14 +195,9 @@ sim_data <- do.call(sim_4pops, sim_param)
 
 res <- est_loadings(sim_data)
 
+
 tib <- make_loadings_tib(sim_data, res)
-plot_loadings(tib)
-ggsave("./figs/methodcomp_balanced.png", height = 6, width = 5)
+saveRDS(tib, "../../output/sparse_methods_loadings.rds")
 
-cp_res <- crossprod_experiment(20, sim_4pops, sim_param)
-
-plot_crossprod_res(cp_res)
-ggsave("./figs/methodcompboxplot1_balanced.png", height = 6, width = 6)
-
-plot_crossprod_diff(cp_res)
-ggsave("./figs/methodcompboxplot2_balanced.png", height = 6, width = 6)
+cp_res <- crossprod_experiment(ntrials, sim_4pops, sim_param)
+saveRDS(cp_res, "../../output/sparse_methods_cpres.rds")

@@ -1,6 +1,3 @@
-library(flashier)
-library(magrittr)
-
 # Initialize an all-ones factor.
 ones <- matrix(1, nrow = nrow(dat), ncol = 1)
 ls.soln <- t(solve(crossprod(ones), crossprod(ones, dat)))

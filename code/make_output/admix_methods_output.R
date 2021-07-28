@@ -1,8 +1,9 @@
-library(tidyverse)
-library(flashier)
-library(gtools)
-
-source("./code/sim_fns.R")
+if (exists("test") && test) {
+  ntrials <- 2
+} else {
+  ntrials <- 20
+}
+cat("Generating output for admixture methods comparisons:", ntrials, "trials...\n\n")
 
 
 tree_fit <- function(dat, prior = prior.point.laplace(), Kmax = Inf, min_pve = 1e-6) {
@@ -185,7 +186,7 @@ accuracy_experiment <- function(ntrials, sim_fn, sim_param_fn, K = 4) {
   acc_tib <- tibble()
   admix_tib <- tibble()
   for (i in 1:ntrials) {
-    cat(i, " ")
+    cat("  Trial", i, "\n")
     sim_par <- sim_param_fn(i)
     sim_par$seed <- i
     sim_data <- do.call(sim_fn, sim_par)
@@ -201,6 +202,7 @@ accuracy_experiment <- function(ntrials, sim_fn, sim_param_fn, K = 4) {
     admix_tib <- admix_tib %>%
       bind_rows(admix_acc)
   }
+  cat("\n")
 
   acc_tib <- acc_tib %>%
     mutate(Trial = row_number()) %>%
@@ -243,36 +245,6 @@ make_loadings_tib <- function(sim_data, res) {
   return(tib)
 }
 
-plot_loadings <- function(tib) {
-  tib <- tib %>%
-    mutate(Accuracy = paste("Tree Acc:", round(Accuracy, 3)),
-           AdmixAcc = paste("Admix Acc:", round(AdmixAcc, 3)))
-
-  plot(
-    ggplot(tib, aes(x = Idx, y = Loading, col = Pop)) +
-      geom_point() +
-      geom_hline(yintercept = 0, linetype = "dashed") +
-      facet_grid(rows = vars(Method, Accuracy, AdmixAcc), cols = vars(Factor), scales = "free_y") +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            panel.spacing = unit(1, "lines"))
-  )
-}
-
-plot_accuracy_res <- function(acc_res) {
-  plot(
-    ggplot(acc_res, aes(x = Method, y = Accuracy)) +
-      geom_boxplot() +
-      theme(axis.text = element_text(size = 12),
-            axis.title = element_text(size = 18)) +
-      facet_wrap(~Type)
-  )
-}
-
 
 # Admixture simulation:
 
@@ -290,14 +262,10 @@ sim_data <- do.call(sim_4pops, sim_param())
 
 res <- est_loadings(sim_data)
 
+
 tib <- make_loadings_tib(sim_data, res)
-plot_loadings(tib)
-ggsave("./figs/methodcomp_admix.png", height = 6, width = 6)
+saveRDS(tib, "../../output/admix_methods_loadings.rds")
 
-acc_res <- accuracy_experiment(20, sim_4pops, sim_param)
+acc_res <- accuracy_experiment(ntrials, sim_4pops, sim_param)
 levels(acc_res$Method) <- c("tree", "cov_tree", "relax", "cov_relax")
-
-plot_accuracy_res(acc_res)
-ggsave("./figs/methodcompboxplot_admix.png", height = 4, width = 6)
-
-
+saveRDS(acc_res, "../../output/admix_methods_accres.rds")

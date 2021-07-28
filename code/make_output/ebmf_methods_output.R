@@ -1,8 +1,9 @@
-library(tidyverse)
-library(flashier)
-library(gtools)
-
-source("./code/sim_fns.R")
+if (exists("test") && test) {
+  ntrials <- 2
+} else {
+  ntrials <- 20
+}
+cat("Generating output for EBMF methods comparisons:", ntrials, "trials...\n\n")
 
 
 tree_fit <- function(dat, prior = prior.point.laplace(), Kmax = Inf, backfit = FALSE) {
@@ -237,7 +238,7 @@ perm_est_to_true <- function(est_LL, est_lfsr, true_LL) {
 accuracy_experiment <- function(ntrials, sim_fn, sim_param_fn, K = 4) {
   tib <- tibble()
   for (i in 1:ntrials) {
-    cat(i, " ")
+    cat("  Trial", i, "\n")
     sim_par <- sim_param_fn(i)
     sim_par$seed <- i
     sim_data <- do.call(sim_fn, sim_par)
@@ -246,6 +247,7 @@ accuracy_experiment <- function(ntrials, sim_fn, sim_param_fn, K = 4) {
     tib <- tib %>%
       bind_rows(acc)
   }
+  cat("\n")
 
   tib <- tib %>%
     mutate(Trial = row_number()) %>%
@@ -277,45 +279,6 @@ make_loadings_tib <- function(sim_data, res) {
   return(tib)
 }
 
-plot_loadings <- function(tib) {
-  plot(
-    ggplot(tib, aes(x = Idx, y = Loading, col = Pop)) +
-      geom_point() +
-      geom_hline(yintercept = 0, linetype = "dashed") +
-      facet_grid(rows = vars(Method, Accuracy), cols = vars(Factor), scales = "free_y") +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            panel.spacing = unit(1, "lines"))
-  )
-}
-
-plot_accuracy_res <- function(acc_res) {
-  plot(
-    ggplot(acc_res, aes(x = Method, y = Accuracy)) +
-      geom_boxplot() +
-      theme(axis.text = element_text(size = 12),
-            axis.title = element_text(size = 18))
-  )
-}
-
-plot_accuracy_diff <- function(acc_res) {
-  acc_res <- acc_res %>%
-    group_by(Trial) %>%
-    mutate(Diff = Accuracy - sum(Accuracy * (Method == "bf")))
-  plot(
-    ggplot(acc_res %>% filter(Method != "bf"), aes(x = Method, y = Diff)) +
-      geom_boxplot() +
-      theme(axis.text = element_text(size = 12),
-            axis.title = element_text(size = 18)) +
-      geom_hline(yintercept = 0, linetype = "dashed") +
-      labs(y = "vs. ebmf_bf")
-  )
-}
-
 
 # Unbalanced tree simulation:
 
@@ -332,15 +295,10 @@ sim_data <- do.call(sim_4pops, sim_param(seed = 777))
 
 res <- est_loadings(sim_data)
 
+
 tib <- make_loadings_tib(sim_data, res)
-plot_loadings(tib)
-ggsave("./figs/methodcomp_unbalanced.png", height = 8, width = 6.5)
+saveRDS(tib, "../../output/ebmf_methods_loadings.rds")
 
-acc_res <- accuracy_experiment(20, sim_4pops, sim_param)
+acc_res <- accuracy_experiment(ntrials, sim_4pops, sim_param)
 levels(acc_res$Method) <- c("bf", "greedy", "admix", "div", "cov", "cov_div", "tree", "cov_tree")
-
-plot_accuracy_res(acc_res)
-ggsave("./figs/methodcompboxplot1_unbalanced.png", height = 6, width = 6)
-
-plot_accuracy_diff(acc_res)
-ggsave("./figs/methodcompboxplot2_unbalanced.png", height = 6, width = 6)
+saveRDS(acc_res, "../../output/ebmf_methods_accres.rds")

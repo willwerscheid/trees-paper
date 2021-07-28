@@ -35,7 +35,9 @@ sim_4pops <- function(pop_sizes,
 
   if(!isTRUE(all.equal(branch_sds[2], branch_sds[-1])) ||
      !isTRUE(all.equal(pop_sizes[1], pop_sizes[-5]))) {
-    divmat[(n - pop_sizes[5] + 1):n, 2] <- NA
+    if (pop_sizes[5] > 0) {
+      divmat[(n - pop_sizes[5] + 1):n, 2] <- NA
+    }
   }
 
   E <- matrix(rnorm(n * p, sd = indiv_sd), nrow = n)

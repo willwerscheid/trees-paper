@@ -1,9 +1,5 @@
-library(tidyverse)
-library(flashier)
-library(RColorBrewer)
-library(gridExtra)
+cat("Running examples...\n\n")
 
-source("./code/sim_fns.R")
 
 tree_fit <- function(dat, prior = prior.point.laplace(), Kmax = Inf, min_pve = 0, verbose.lvl = 0) {
   ones <- matrix(1, nrow = nrow(dat), ncol = 1)
@@ -182,7 +178,7 @@ plot_loadings <- function(res, pops, filename = NULL) {
           panel.spacing = unit(1, "lines"))
 
   if (!is.null(filename)) {
-    ggsave(paste0("./figs/", filename, ".png"), plt, height = 6, width = 8)
+    ggsave(paste0("../../figs/", filename, ".png"), plt, height = 6, width = 8)
   } else {
     plot(plt)
   }
@@ -224,7 +220,7 @@ plot_wolves <- function(LL, pve, lat, long, filename = NULL) {
     facet_wrap(~factor)
 
   if (!is.null(filename)) {
-    ggsave(paste0("./figs/wolves_", filename, ".png"), plt, height = 6, width = 8)
+    ggsave(paste0("../../figs/wolves_", filename, ".png"), plt, height = 6, width = 8)
   } else {
     plot(plt)
   }
@@ -263,7 +259,7 @@ plot_tgp <- function(LL, pve, superpop, pop, save = FALSE) {
     theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank()) +
     facet_wrap(~factor, ncol = 3)
   if (save) {
-    ggsave("./figs/tgp_allpops.png", height = 8, width = 6.5)
+    ggsave("../../figs/tgp_allpops.png", height = 8, width = 6.5)
   } else {
     plot(plt)
   }
@@ -315,7 +311,7 @@ plot_tgp <- function(LL, pve, superpop, pop, save = FALSE) {
   )
 
   if (save) {
-    ggsave("./figs/tgp_subpops.png", g2, height = 10, width = 8)
+    ggsave("../../figs/tgp_subpops.png", g2, height = 10, width = 8)
   } else {
     plot(g2)
   }
@@ -324,6 +320,7 @@ plot_tgp <- function(LL, pve, superpop, pop, save = FALSE) {
 
 
 # 6 population simulation:
+cat("  Six-population simulation...\n\n")
 
 sim_data_6pop <- sim_6pops(pop_sizes = c(rep(100, 6), 40),
                            branch_sds = c(20, 10, 6, 4, 4, 4, 2, 2, 2, 1, 1),
@@ -336,7 +333,8 @@ res_6pop <- do_fits(sim_data_6pop$Y, Kmax = 6)
 plot_loadings(res_6pop[c(1, 3, 5)], sim_data_6pop$pops, filename = "sim_6pops")
 
 
-# Star simulation
+# Star simulation:
+cat("  Star simulation...\n\n")
 
 sim_data_star <- sim_star(pop_sizes = rep(100, 4),
                           branch_sds = 2,
@@ -348,9 +346,10 @@ plot_loadings(res_star[c(1, 3, 5)], sim_data_star$pops, filename = "sim_star")
 
 
 # Wolves:
+cat("  Wolves dataset...\n\n")
 
-wolvesadmix <- readRDS("./data/wolvesadmix_covmat.rds")
-wolves_coord <- read_delim("./data/wolvesadmix_coord.tsv", delim = " ", col_names = FALSE)
+wolvesadmix <- readRDS("../../data/wolvesadmix_covmat.rds")
+wolves_coord <- read_delim("../../data/wolvesadmix_coord.tsv", delim = " ", col_names = FALSE)
 
 res_wolves <- do_fits(wolvesadmix, is_cov = TRUE, Kmax = 7, tree_Kmax = 16)
 
@@ -371,9 +370,10 @@ plot_wolves(
 
 
 # Thousand Genomes Project:
+cat("  1000 Genomes Project data...\n\n")
 
-tgp <- readRDS("./data/tgp_covmat.rds")
-tgp_meta <- readRDS("./data/tgp_meta.rds")
+tgp <- readRDS("../../data/tgp_covmat.rds")
+tgp_meta <- readRDS("../../data/tgp_meta.rds")
 
 res_tgp <- do_fits(tgp, is_cov = TRUE, Kmax = 11, tree_Kmax = 32)
 
